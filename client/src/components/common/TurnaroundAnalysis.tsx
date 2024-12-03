@@ -61,7 +61,7 @@ const TurnaroundAnalysis: React.FC<TurnaroundAnalysisProps> = ({ endpoint, title
       try {
         setLoading(true);
         setError(null);
-        const response = await axios.get(`http://localhost:8080${endpoint}`);
+        const response = await axios.get(`https://gammad-auto-care-center.onrender.com${endpoint}`);
         console.log('Fetched data:', response.data); // Debugging log
         
         // Access the nested data property

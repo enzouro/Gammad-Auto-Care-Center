@@ -75,7 +75,7 @@ const useRestoreWithConfirmation = ({
     try {
       const ids = restoreConfirmation.ids.join(',');
       const response = await fetch(
-        `http://localhost:8080/api/v1/${resource}/${ids}/restore`, 
+        `https://gammad-auto-care-center.onrender.com/api/v1/${resource}/${ids}/restore`, 
         {
           method: 'PATCH',
           headers: {

@@ -80,7 +80,7 @@ const ReportsPage: React.FC = () => {
             }
 
             // Make API call with optional parameters
-            const { data } = await axios.get<ReportData>('http://localhost:8080/api/v1/reports/generate', { params });
+            const { data } = await axios.get<ReportData>('https://gammad-auto-care-center.onrender.com/api/v1/reports/generate', { params });
             setReport(data);
         } catch (err) {
             setError('Failed to generate report');

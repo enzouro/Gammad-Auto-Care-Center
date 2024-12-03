@@ -284,7 +284,7 @@ const handleSearch = async () => {
     setSearchResult(null);
 
     const response = await fetch(
-      `http://localhost:8080/api/v1/clientPortal/search?trackCode=${encodeURIComponent(trackCode)}`,
+      `https://gammad-auto-care-center.onrender.com/api/v1/clientPortal/search?trackCode=${encodeURIComponent(trackCode)}`,
       {
         method: 'GET',
         headers: {
@@ -302,7 +302,7 @@ const handleSearch = async () => {
     if (data.success) {
       try {
         const turnaroundResponse = await fetch(
-          'http://localhost:8080/api/forecasting/turnaround',
+          'https://gammad-auto-care-center.onrender.com/api/forecasting/turnaround',
           {
             method: 'GET',
             headers: {

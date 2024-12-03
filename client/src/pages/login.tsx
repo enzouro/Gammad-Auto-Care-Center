@@ -21,7 +21,7 @@ const GoogleButton: React.FC<{ onLogin: (res: CredentialResponse) => void }> = (
         callback: async (res: CredentialResponse) => {
           if (res.credential) {
             const profileObj = JSON.parse(atob(res.credential.split('.')[1]));
-            const response = await axios.post('http://localhost:8080/api/v1/users', {
+            const response = await axios.post('https://gammad-auto-care-center.onrender.com/api/v1/users', {
               name: profileObj.name,
               email: profileObj.email,
               avatar: profileObj.picture,

@@ -29,7 +29,7 @@ const ForecastChart: React.FC<ForecastChartProps> = ({ endpoint, title }) => {
     const fetchForecast = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`http://localhost:8080${endpoint}`);
+        const response = await axios.get(`https://gammad-auto-care-center.onrender.com${endpoint}`);
         console.log('Fetched data:', response.data); // Debugging log
         setData(response.data);
         setLoading(false);
