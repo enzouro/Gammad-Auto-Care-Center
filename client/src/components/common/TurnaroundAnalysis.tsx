@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import ReactApexCharts from 'react-apexcharts';
 import { Box, Typography, CircularProgress, Button } from '@pankod/refine-mui';
 import axios from 'axios';
 import { ApexOptions } from 'apexcharts';
 import useDynamicHeight from 'hooks/useDynamicHeight';
+import { ColorModeContext } from 'contexts';
 
 interface TurnaroundData {
   historical: {
@@ -55,6 +56,7 @@ const TurnaroundAnalysis: React.FC<TurnaroundAnalysisProps> = ({ endpoint, title
   const [error, setError] = useState<string | null>(null);
   const [showChart, setShowChart] = useState(false);
   const containerHeight = useDynamicHeight();
+  const { mode } = useContext(ColorModeContext);
 
   useEffect(() => {
     const fetchAnalysis = async () => {
@@ -105,12 +107,13 @@ const TurnaroundAnalysis: React.FC<TurnaroundAnalysisProps> = ({ endpoint, title
           tools: {
             download: true,
             selection: true,
-            zoom: true,
+            zoom: false,
             zoomin: true,
             zoomout: true,
             pan: true,
             reset: true,
           },
+          
         },
         animations: {
           enabled: true,
@@ -132,19 +135,30 @@ const TurnaroundAnalysis: React.FC<TurnaroundAnalysisProps> = ({ endpoint, title
         labels: {
           rotate: -45,
           trim: true,
+          style: {
+            colors: mode === 'dark' ? '#fff' : '#141414',
+          },
         },
       },
       yaxis: {
         title: {
           text: 'Hours',
+          style: {
+            fontSize: '12px',
+            color: mode === 'dark' ? '#fff' : '#141414',
+          },
         },
         labels: {
           formatter: (value) => value != null ? value.toFixed(1) : '0.0',
+          style: {
+            colors: mode === 'dark' ? '#fff' : '#141414',
+          },
         },
       },
       tooltip: {
         shared: true,
         intersect: false,
+        theme: mode === 'dark' ? 'dark' : 'light',
         y: {
           formatter: (value) => value != null ? `${value.toFixed(1)} hours` : 'N/A',
         },
@@ -152,6 +166,9 @@ const TurnaroundAnalysis: React.FC<TurnaroundAnalysisProps> = ({ endpoint, title
       legend: {
         position: 'top',
         horizontalAlign: 'center',
+        labels: {
+          colors: mode === 'dark' ? '#fff' : '#141414',
+      },
       },
       colors: ['#008FFB', '#FEB019', '#00E396', '#FF4560', '#B3F7CA', '#B3F7CA'],
       fill: {

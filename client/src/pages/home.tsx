@@ -8,7 +8,9 @@ import {
   FormControl,
   InputLabel,
   Select,
-  MenuItem
+  MenuItem,
+  useTheme,
+  useMediaQuery
 } from '@pankod/refine-mui';
 import ApexChart from '../components/common/ApexChart';
 import useDynamicHeight from 'hooks/useDynamicHeight';
@@ -51,8 +53,16 @@ interface ChartData {
   data: number[];
 }
 
+const useResponsiveHeight = () => {
+  const theme = useTheme();
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down('md'));
+  
+  return isSmallScreen ? 250 : 350; // Adjust these values as needed
+};
+
 const Home = () => {
   const { mode } = useContext(ColorModeContext);
+  const dynamicChartHeight = useResponsiveHeight();
   
   // Generate years and months arrays
   const currentYear = new Date().getFullYear();
@@ -124,6 +134,7 @@ const Home = () => {
       pagination: { pageSize: 1000 }
     }
   });
+  
 
   // Initialize state
   const [salesChartData, setSalesChartData] = useState<ChartData>({ name: '', data: [] });
@@ -135,6 +146,8 @@ const Home = () => {
   const [deploymentsStatusData, setDeploymentsStatusData] = useState<number[]>([]);
   const [partsQuantityData, setPartsQuantityData] = useState<number[]>([]);
   const [partsLabels, setPartsLabels] = useState<string[]>([]);
+
+
 
   // Helper function to filter data by year and month
   const filterDataByDate = <T extends { date: string, deleted?: boolean }>(
@@ -352,11 +365,20 @@ const Home = () => {
       <Box sx={{ 
         flex: 1,
         width: '100%',
+        alignItems: 'center',
         overflow: 'hidden',
         display: 'grid',
         gridTemplateColumns: { 
-          xs: '1fr', 
-          md: 'repeat(2, 1fr)' 
+          xs: '1fr',           // Single column on extra small screens
+          sm: 'repeat(1, 1fr)',// Two columns on small screens
+          md: 'repeat(1, 1fr) 1fr 1fr', // 3 columns in first row, 2 columns in second row on medium screens
+          lg: 'repeat(1, 1fr) 1fr 1fr', // Same for large screens
+          xl: 'repeat(1, 1fr) 1fr 1fr'  // Same for extra-large screens
+        },
+        gridTemplateRows: { 
+          xs: 'auto',
+          sm: 'auto',
+          md: 'auto auto', // Two rows
         },
         gap: 2,
         p: 2,
@@ -367,7 +389,14 @@ const Home = () => {
             <Typography fontSize={18} fontWeight={600} sx={{ mb: 2, color: mode === 'dark' ? '#fff' : '#141414', }}>
               Sales Analysis
             </Typography>
-            <Box sx={{ flex: 1, overflow: 'hidden' }}>
+            <Box sx={{ flex: 1, overflow: 'hidden', alignItems: 'center',
+                height: { 
+                  xs: '250px',   // Mobile height
+                  sm: '300px',   // Tablet height
+                  md: '350px',   // Desktop height
+                  lg: '400px'    // Large screen height
+                }
+             }}>
               <ApexChart
                 type="line"
                 series={[{
@@ -379,7 +408,7 @@ const Home = () => {
                 }]}
                 options={{
                   chart: { 
-                    height: '100%',
+                   height: '100%', width: '100%',
                     toolbar: {
                       show: false,
                     },
@@ -391,24 +420,36 @@ const Home = () => {
                   xaxis: {
                     categories: salesCategories,
                     title: {
-                      text: 'Date'
+                      text: 'Date',
+                      style: {
+                        fontSize: '12px',
+                        color: mode === 'dark' ? '#fff' : '#141414',
+                      },
                     },
                     labels: {
                       style: {
                         fontSize: '12px',
+                        colors: mode === 'dark' ? '#fff' : '#141414',
                       },
                     },
                   },
                   yaxis: {
                     title: {
-                      text: 'Sales (₱)'
+                      text: 'Sales (₱)',
+                      style: {
+                        fontSize: '12px',
+                        color: mode === 'dark' ? '#fff' : '#141414',
+                      },
                     },
                     labels: {
                       formatter: (value) => `₱${Number(value).toLocaleString()}`,
+                      style: {
+                        colors: mode === 'dark' ? '#fff' : '#141414',
+                      },
                     },
                     min: 0,
                     forceNiceScale: true
-                  },
+                  }
                 }}
                 colors={['#475BE8']}
               />
@@ -427,29 +468,46 @@ const Home = () => {
             <Typography fontSize={18} fontWeight={600} sx={{ mb: 2, color: mode === 'dark' ? '#fff' : '#141414', }}>
               Expenses Analysis
             </Typography>
-            <Box sx={{ flex: 1, overflow: 'hidden' }}>
+            <Box sx={{ flex: 1, overflow: 'hidden', alignItems: 'center',  height: { 
+                  xs: '250px',   // Mobile height
+                  sm: '300px',   // Tablet height
+                  md: '350px',   // Desktop height
+                  lg: '400px'    // Large screen height
+                } }}>
               <ApexChart
                 type="bar"
                 series={[expensesChartData]}
                 options={{
-                  chart: { height: '100%' },
+                  chart: { height: '100%', width: '100%' },
                   xaxis: {
                     categories: expensesCategories,
                     title: {
-                      text: 'Date'
+                      text: 'Date',
+                      style: {
+                        fontSize: '12px',
+                        color: mode === 'dark' ? '#fff' : '#141414',
+                      },
                     },
                     labels: {
                       style: {
                         fontSize: '12px',
+                        colors: mode === 'dark' ? '#fff' : '#141414',
                       },
                     },
                   },
                   yaxis: {
                     title: {
-                      text: 'Expense Ammount (₱)'
+                      text: 'Expense Ammount (₱)',
+                        style: {
+                          fontSize: '12px',
+                          color: mode === 'dark' ? '#fff' : '#141414',
+                        },
                     },
                     labels: {
                       formatter: (value) => `₱${Number(value).toLocaleString()}`,
+                      style: {
+                        colors: mode === 'dark' ? '#fff' : '#141414',
+                      },
                     },
                     min: 0,
                     forceNiceScale: true
@@ -472,7 +530,12 @@ const Home = () => {
             <Typography fontSize={18} fontWeight={600} sx={{ mb: 2, color: mode === 'dark' ? '#fff' : '#141414', }}>
               Procurement Analysis
             </Typography>
-            <Box sx={{ flex: 1, overflow: 'hidden' }}>
+            <Box sx={{ flex: 1, overflow: 'hidden', alignItems: 'center',  height: { 
+                  xs: '250px',   // Mobile height
+                  sm: '300px',   // Tablet height
+                  md: '350px',   // Desktop height
+                  lg: '400px'    // Large screen height
+                } }}>
               <ApexChart
                 type="line"
                 series={[{
@@ -484,7 +547,7 @@ const Home = () => {
                 }]}
                 options={{
                   chart: { 
-                    height: '100%',
+                    height: '100%', width: '100%'
                   },
                   markers: {
                     size: 1,
@@ -492,11 +555,16 @@ const Home = () => {
                   xaxis: {
                     categories: procurementCategories,
                     title: {
-                      text: 'Date'
+                      text: 'Date',
+                      style: {
+                        fontSize: '12px',
+                        color: mode === 'dark' ? '#fff' : '#141414',
+                      },
                     },
                     labels: {
                       style: {
                         fontSize: '12px',
+                        colors: mode === 'dark' ? '#fff' : '#141414',
                       },
                       rotate: -45,
                       trim: true
@@ -505,10 +573,17 @@ const Home = () => {
                   },
                   yaxis: {
                     title: {
-                      text: 'Procurement Amount (₱)'
+                      text: 'Procurement Amount (₱)',
+                      style: {
+                        fontSize: '12px',
+                        color: mode === 'dark' ? '#fff' : '#141414',
+                      },
                     },
                     labels: {
                       formatter: (value) => `₱${Number(value).toLocaleString()}`,
+                      style: {
+                        colors: mode === 'dark' ? '#fff' : '#141414',
+                      },
                     },
                     min: 0,
                     forceNiceScale: true
@@ -534,14 +609,22 @@ const Home = () => {
             <Typography fontSize={18} fontWeight={600} sx={{ mb: 2, color: mode === 'dark' ? '#fff' : '#141414', }}>
               Deployment Status
             </Typography>
-            <Box sx={{ flex: 1, overflow: 'hidden' }}>
+            <Box sx={{ flex: 1, overflow: 'hidden', alignItems: 'center',  height: { 
+                  xs: '250px',   // Mobile height
+                  sm: '300px',   // Tablet height
+                  md: '350px',   // Desktop height
+                  lg: '400px'    // Large screen height
+                } }}>
               <ApexChart
                 type="pie"
                 series={deploymentsStatusData}
                 options={{
                   labels: ['Deployed', 'Pending'],
                   legend: {
-                    position: 'bottom'
+                    position: 'bottom',
+                    labels: {
+                        colors: mode === 'dark' ? '#fff' : '#141414',
+                    },
                   }
                 }}
                 colors={['#475BE8', '#FD8539']}
@@ -561,14 +644,22 @@ const Home = () => {
             <Typography fontSize={18} fontWeight={600} sx={{ mb: 2, color: mode === 'dark' ? '#fff' : '#141414', }}>
               Parts Distribution
             </Typography>
-            <Box sx={{ flex: 1, overflow: 'hidden' }}>
+            <Box sx={{ flex: 1, overflow: 'hidden', alignItems: 'center',  height: { 
+                  xs: '250px',   // Mobile height
+                  sm: '300px',   // Tablet height
+                  md: '350px',   // Desktop height
+                  lg: '400px'    // Large screen height
+                } }}>
               <ApexChart
                 type="donut"
                 series={partsQuantityData}
                 options={{
                   labels: partsLabels,
                   legend: {
-                    position: 'bottom'
+                    position: 'bottom',
+                    labels: {
+                        colors: mode === 'dark' ? '#fff' : '#141414',
+                    },
                   }
                 }}
                 colors={['#475BE8', '#FD8539', '#2ED480', '#FE6D8E', '#7E57C2', '#4CAF50', '#FF7043', '#29B6F6', '#9C27B0', '#FF5722']}

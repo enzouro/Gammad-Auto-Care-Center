@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import ReactApexCharts from 'react-apexcharts';
 import { Box, Typography, CircularProgress, Button } from '@pankod/refine-mui';
 import axios from 'axios';
 import { ApexOptions } from 'apexcharts';
 import useDynamicHeight from 'hooks/useDynamicHeight';
-import { ColorModeContextProvider } from 'contexts';
+import { ColorModeContext, ColorModeContextProvider } from 'contexts';
 
 interface PartSummary {
   totalUsage: number;
@@ -44,12 +44,13 @@ const PartDemandForecastChart: React.FC<PartDemandForecastChartProps> = ({ endpo
   const [loading, setLoading] = useState(true);
   const [showChart, setShowChart] = useState(false);
   const containerHeight = useDynamicHeight();
+  const { mode } = useContext(ColorModeContext);
 
   useEffect(() => {
     const fetchForecast = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`https://gammad-auto-care-center.onrender.com/${endpoint}`);
+        const response = await axios.get(`https://gammad-auto-care-center.onrender.com${endpoint}`);
         console.log('Fetched data:', response.data);
         setData(response.data);
         setLoading(false);
@@ -78,28 +79,42 @@ const PartDemandForecastChart: React.FC<PartDemandForecastChartProps> = ({ endpo
       chart: {
         type: 'line',
         height: 350,
-        zoom: {
-          enabled: true
-        }
+        toolbar: {
+          tools: {
+            zoom: false, // Disables the magnifying glass (zoom tool)
+          },
+        },
       },
       title: {
         text: `Forecast for ${partName}`,
-        align: 'left'
+        align: 'left',
+        style: {
+          color: mode === 'dark' ? '#fff' : '#141414',
+        },
       },
       
       xaxis: {
         categories: allCategories,
         title: {
-          text: 'Periods'
+          text: 'Periods',
+          style: {
+            color: mode === 'dark' ? '#fff' : '#141414',
+          },
         }
       },
       yaxis: {
         title: {
-          text: 'Demand Quantity'
+          text: 'Demand Quantity',
+          style: {
+            color: mode === 'dark' ? '#fff' : '#141414',
+          },
         },
         
         labels: {
           formatter: (value) => value !== undefined ? value.toFixed(2) : '',
+          style: {
+            colors: mode === 'dark' ? '#fff' : '#141414',
+          },
         },
         tickAmount: 5, // Limit number of ticks
       },
@@ -109,7 +124,10 @@ const PartDemandForecastChart: React.FC<PartDemandForecastChartProps> = ({ endpo
       },
       legend: {
         show: true,
-        position: 'top'
+        position: 'top',
+        labels: {
+          colors: mode === 'dark' ? '#fff' : '#141414',
+      },
       },
       fill: {
         type: 'solid',
@@ -117,7 +135,8 @@ const PartDemandForecastChart: React.FC<PartDemandForecastChartProps> = ({ endpo
       },
       tooltip: {
         shared: true,
-        intersect: false
+        intersect: false,
+        theme: mode === 'dark' ? 'dark' : 'light',
       }
     };
   };

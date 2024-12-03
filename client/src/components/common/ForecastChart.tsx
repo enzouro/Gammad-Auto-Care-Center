@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import ReactApexCharts from 'react-apexcharts';
 import { Box, Typography, CircularProgress, Button } from '@pankod/refine-mui';
 import axios from 'axios';
 import { ApexOptions } from 'apexcharts';
 import useDynamicHeight from 'hooks/useDynamicHeight';
+import { ColorModeContext } from 'contexts';
 
 interface ForecastData {
   historical: number[];
@@ -24,12 +25,13 @@ const ForecastChart: React.FC<ForecastChartProps> = ({ endpoint, title }) => {
   const [loading, setLoading] = useState(true);
   const [showChart, setShowChart] = useState(false); // State to manage chart visibility
   const containerHeight = useDynamicHeight();
+  const { mode } = useContext(ColorModeContext);
 
   useEffect(() => {
     const fetchForecast = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`https://gammad-auto-care-center.onrender.com/${endpoint}`);
+        const response = await axios.get(`https://gammad-auto-care-center.onrender.com${endpoint}`);
         console.log('Fetched data:', response.data); // Debugging log
         setData(response.data);
         setLoading(false);
@@ -58,7 +60,7 @@ const ForecastChart: React.FC<ForecastChartProps> = ({ endpoint, title }) => {
           tools: {
             download: true,
             selection: true,
-            zoom: true,
+            zoom: false,
             zoomin: true,
             zoomout: true,
             pan: true,
@@ -85,11 +87,17 @@ const ForecastChart: React.FC<ForecastChartProps> = ({ endpoint, title }) => {
         labels: {
           rotate: -45,
           trim: true,
+          style: {
+            colors: mode === 'dark' ? '#fff' : '#141414',
+          },
         },
       },
       yaxis: {
         title: {
           text: 'Value',
+          style: {
+            color: mode === 'dark' ? '#fff' : '#141414',
+          },
         },
         labels: {
           formatter: (value) =>
@@ -100,12 +108,16 @@ const ForecastChart: React.FC<ForecastChartProps> = ({ endpoint, title }) => {
                   currency: 'PHP', // Set to PHP
                 })
               : 'N/A', // Fallback if value is undefined or null
+              style: {
+                colors: mode === 'dark' ? '#fff' : '#141414',
+              },
         },
         tickAmount: 5, // Limit number of ticks
       },
       tooltip: {
         shared: true,
         intersect: false,
+        theme: mode === 'dark' ? 'dark' : 'light',
         y: {
           formatter: (value) =>
             value !== undefined && value !== null
@@ -119,6 +131,9 @@ const ForecastChart: React.FC<ForecastChartProps> = ({ endpoint, title }) => {
       legend: {
         position: 'top',
         horizontalAlign: 'center',
+        labels: {
+          colors: mode === 'dark' ? '#fff' : '#141414',
+        },
       },
       colors: ['#008FFB', '#FEB019', '#B3F7CA', '#B3F7CA'],
       fill: {
