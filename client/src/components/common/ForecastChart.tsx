@@ -29,7 +29,7 @@ const ForecastChart: React.FC<ForecastChartProps> = ({ endpoint, title }) => {
     const fetchForecast = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`https://gammad-auto-care-center.onrender.com${endpoint}`);
+        const response = await axios.get(`https://gammad-auto-care-center.onrender.com/${endpoint}`);
         console.log('Fetched data:', response.data); // Debugging log
         setData(response.data);
         setLoading(false);
@@ -101,6 +101,7 @@ const ForecastChart: React.FC<ForecastChartProps> = ({ endpoint, title }) => {
                 })
               : 'N/A', // Fallback if value is undefined or null
         },
+        tickAmount: 5, // Limit number of ticks
       },
       tooltip: {
         shared: true,
@@ -186,7 +187,7 @@ const ForecastChart: React.FC<ForecastChartProps> = ({ endpoint, title }) => {
               <ReactApexCharts
                 options={getChartOptions(data)}
                 series={getSeries(data)}
-                height={containerHeight}
+                height={450}
                 width="100%"
               />
             </Box>

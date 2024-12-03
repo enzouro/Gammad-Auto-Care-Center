@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useContext } from 'react';
 import { useList } from '@pankod/refine-core';
 import { 
   Box, 
@@ -14,6 +14,7 @@ import ApexChart from '../components/common/ApexChart';
 import useDynamicHeight from 'hooks/useDynamicHeight';
 import LoadingDialog from 'components/common/LoadingDialog';
 import ErrorDialog from 'components/common/ErrorDialog';
+import { ColorModeContext } from 'contexts';
 
 // Existing interfaces
 interface SaleItem {
@@ -51,7 +52,7 @@ interface ChartData {
 }
 
 const Home = () => {
-  const containerHeight = useDynamicHeight();
+  const { mode } = useContext(ColorModeContext);
   
   // Generate years and months arrays
   const currentYear = new Date().getFullYear();
@@ -363,23 +364,51 @@ const Home = () => {
       }}>
         {salesChartData.data.length > 0 ? (
           <Paper elevation={2} sx={{ p: 2, display: 'flex', flexDirection: 'column' }}>
-            <Typography fontSize={18} fontWeight={600} color="#11142D" sx={{ mb: 2 }}>
+            <Typography fontSize={18} fontWeight={600} sx={{ mb: 2, color: mode === 'dark' ? '#fff' : '#141414', }}>
               Sales Analysis
             </Typography>
             <Box sx={{ flex: 1, overflow: 'hidden' }}>
               <ApexChart
                 type="line"
-                series={[salesChartData]}
+                series={[{
+                  name: salesChartData.name,
+                  data: salesChartData.data.map(val => {
+                    const numVal = Number(val);
+                    return isNaN(numVal) ? 0 : numVal;
+                  })
+                }]}
                 options={{
-                  chart: { height: '100%' },
+                  chart: { 
+                    height: '100%',
+                    toolbar: {
+                      show: false,
+                    },
+                   },
+                   markers: {
+                    size: 1,
+                   },
+
                   xaxis: {
                     categories: salesCategories,
+                    title: {
+                      text: 'Date'
+                    },
                     labels: {
                       style: {
                         fontSize: '12px',
                       },
                     },
-                  }
+                  },
+                  yaxis: {
+                    title: {
+                      text: 'Sales (₱)'
+                    },
+                    labels: {
+                      formatter: (value) => `₱${Number(value).toLocaleString()}`,
+                    },
+                    min: 0,
+                    forceNiceScale: true
+                  },
                 }}
                 colors={['#475BE8']}
               />
@@ -395,7 +424,7 @@ const Home = () => {
 
         {expensesChartData.data.length > 0 ? (
           <Paper elevation={2} sx={{ p: 2, display: 'flex', flexDirection: 'column' }}>
-            <Typography fontSize={18} fontWeight={600} color="#11142D" sx={{ mb: 2 }}>
+            <Typography fontSize={18} fontWeight={600} sx={{ mb: 2, color: mode === 'dark' ? '#fff' : '#141414', }}>
               Expenses Analysis
             </Typography>
             <Box sx={{ flex: 1, overflow: 'hidden' }}>
@@ -406,12 +435,25 @@ const Home = () => {
                   chart: { height: '100%' },
                   xaxis: {
                     categories: expensesCategories,
+                    title: {
+                      text: 'Date'
+                    },
                     labels: {
                       style: {
                         fontSize: '12px',
                       },
                     },
-                  }
+                  },
+                  yaxis: {
+                    title: {
+                      text: 'Expense Ammount (₱)'
+                    },
+                    labels: {
+                      formatter: (value) => `₱${Number(value).toLocaleString()}`,
+                    },
+                    min: 0,
+                    forceNiceScale: true
+                  },
                 }}
                 colors={['#FD8539']}
               />
@@ -427,7 +469,7 @@ const Home = () => {
 
         {procurementChartData.data.length > 0 ? (
           <Paper elevation={2} sx={{ p: 2, display: 'flex', flexDirection: 'column' }}>
-            <Typography fontSize={18} fontWeight={600} color="#11142D" sx={{ mb: 2 }}>
+            <Typography fontSize={18} fontWeight={600} sx={{ mb: 2, color: mode === 'dark' ? '#fff' : '#141414', }}>
               Procurement Analysis
             </Typography>
             <Box sx={{ flex: 1, overflow: 'hidden' }}>
@@ -444,8 +486,14 @@ const Home = () => {
                   chart: { 
                     height: '100%',
                   },
+                  markers: {
+                    size: 1,
+                },
                   xaxis: {
                     categories: procurementCategories,
+                    title: {
+                      text: 'Date'
+                    },
                     labels: {
                       style: {
                         fontSize: '12px',
@@ -457,10 +505,10 @@ const Home = () => {
                   },
                   yaxis: {
                     title: {
-                      text: 'Procurement Amount ($)'
+                      text: 'Procurement Amount (₱)'
                     },
                     labels: {
-                      formatter: (value) => `$${Number(value).toLocaleString()}`,
+                      formatter: (value) => `₱${Number(value).toLocaleString()}`,
                     },
                     min: 0,
                     forceNiceScale: true
@@ -483,7 +531,7 @@ const Home = () => {
 
         {deploymentsStatusData.length > 0 ? (
           <Paper elevation={2} sx={{ p: 2, display: 'flex', flexDirection: 'column' }}>
-            <Typography fontSize={18} fontWeight={600} color="#11142D" sx={{ mb: 2 }}>
+            <Typography fontSize={18} fontWeight={600} sx={{ mb: 2, color: mode === 'dark' ? '#fff' : '#141414', }}>
               Deployment Status
             </Typography>
             <Box sx={{ flex: 1, overflow: 'hidden' }}>
@@ -510,7 +558,7 @@ const Home = () => {
 
         {partsQuantityData.length > 0 ? (
           <Paper elevation={2} sx={{ p: 2, display: 'flex', flexDirection: 'column' }}>
-            <Typography fontSize={18} fontWeight={600} color="#11142D" sx={{ mb: 2 }}>
+            <Typography fontSize={18} fontWeight={600} sx={{ mb: 2, color: mode === 'dark' ? '#fff' : '#141414', }}>
               Parts Distribution
             </Typography>
             <Box sx={{ flex: 1, overflow: 'hidden' }}>
@@ -523,7 +571,7 @@ const Home = () => {
                     position: 'bottom'
                   }
                 }}
-                colors={['#475BE8', '#FD8539', '#2ED480', '#FE6D8E']}
+                colors={['#475BE8', '#FD8539', '#2ED480', '#FE6D8E', '#7E57C2', '#4CAF50', '#FF7043', '#29B6F6', '#9C27B0', '#FF5722']}
               />
             </Box>
           </Paper>

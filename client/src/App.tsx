@@ -65,17 +65,6 @@ axiosInstance.interceptors.request.use((request: AxiosRequestConfig) => {
   return request;
 });
 
-const suppressConsoleErrors = () => {
-  const originalConsoleError = console.error;
-  console.error = (...args) => {
-    if (
-      args[0]?.includes('POST https://accounts.google.com/gsi/revoke') ||
-      args[0]?.includes('The specified user is not signed in.')
-    ) {
-      return;
-    }
-  };
-};
 
 const App = () => {
   const [isAdmin, setIsAdmin] = React.useState(false);
@@ -125,7 +114,6 @@ const App = () => {
     // Initial check
     checkUserAuthorization();
     
-    suppressConsoleErrors();
 
     // Cleanup interval on component unmount
     return () => clearInterval(authCheckInterval);
