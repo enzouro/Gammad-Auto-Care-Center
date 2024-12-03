@@ -1,0 +1,10 @@
+**/*.js
+**/*.ts
+**/*.tsx
+
+
+client/src/*.tsx
+
+build/*.js
+config/*.js
+bower_components/foo/*.js
