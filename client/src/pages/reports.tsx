@@ -61,30 +61,26 @@ const ReportsPage: React.FC = () => {
         'July', 'August', 'September', 
         'October', 'November', 'December'
     ];
-
     const generateReport = async () => {
         setLoading(true);
         setError(null);
         try {
-            // Prepare query parameters
             const params: { month?: string; year?: string } = {};
-            
-            // Add month if not ALL and convert to number
+        
             if (selectedMonth !== 'ALL') {
-                params.month = (months.indexOf(selectedMonth)).toString();
+                // Convert month name to its numerical index
+                params.month = (months.indexOf(selectedMonth) + 1).toString();
             }
             
-            // Add year if not ALL
             if (selectedYear !== 'ALL') {
                 params.year = selectedYear;
             }
-
-            // Make API call with optional parameters
+    
             const { data } = await axios.get<ReportData>('https://gammad-auto-care-center.onrender.com/api/v1/reports/generate', { params });
             setReport(data);
         } catch (err) {
             setError('Failed to generate report');
-            console.error(err);
+            
         } finally {
             setLoading(false);
         }

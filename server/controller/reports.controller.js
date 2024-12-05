@@ -1,4 +1,3 @@
-// server\controller\report.controller.js
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 
@@ -22,21 +21,24 @@ export const generateReport = async (req, res) => {
 
         // Add month and year filtering if specified
         if (month && year) {
-            const startOfMonth = new Date(year, month - 1, 1);
-            const endOfMonth = new Date(year, month, 0);
+            // Create start and end date strings for the specified month and year
+            const startOfMonth = `${year}-${month.toString().padStart(2, '0')}-01`;
+            const endOfMonth = `${year}-${month.toString().padStart(2, '0')}-31`;
+            
             dateFilter.date = {
-                $gte: startOfMonth,
+                $gte: startOfMonth, 
                 $lte: endOfMonth
             };
         } 
         // If specific date range is provided, use it
         else if (startDate && endDate) {
             dateFilter.date = { 
-                $gte: new Date(startDate), 
-                $lte: new Date(endDate) 
+                $gte: startDate, 
+                $lte: endDate
             };
         }
 
+        // Rest of the code remains the same...
         // Sales Summary
         const sales = await Sale.find(dateFilter);
         const salesSummary = {
