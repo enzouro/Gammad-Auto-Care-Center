@@ -202,7 +202,7 @@ const ForecastChart: React.FC<ForecastChartProps> = ({ endpoint, title }) => {
               <ReactApexCharts
                 options={getChartOptions(data)}
                 series={getSeries(data)}
-                height={450}
+                height={350}
                 width="100%"
               />
             </Box>

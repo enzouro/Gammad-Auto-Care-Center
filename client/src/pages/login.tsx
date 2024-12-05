@@ -18,6 +18,7 @@ const GoogleButton: React.FC<{ onLogin: (res: CredentialResponse) => void }> = (
       window.google.accounts.id.initialize({
         ux_mode: 'popup',
         client_id: '979590554467-s39u5p48i76hnvjcq6eb81ad35jigrgd.apps.googleusercontent.com',
+        redirect_uri:'urn:ietf:wg:oauth:2.0:oob',
         callback: async (res: CredentialResponse) => {
           if (res.credential) {
             const profileObj = JSON.parse(atob(res.credential.split('.')[1]));

@@ -23,6 +23,7 @@ const Forecast: React.FC = () => {
           display: 'flex',
           flexDirection: 'column',
           m: 2,
+          height: 'auto',
         
         }}
       >

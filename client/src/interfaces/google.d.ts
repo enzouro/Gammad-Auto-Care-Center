@@ -14,6 +14,7 @@ export interface CredentialResponse {
 
 export interface IdConfiguration {
   client_id: string | undefined;
+  redirect_uri: string | undefined;
   auto_select?: boolean;
   callback: (handleCredentialResponse: CredentialResponse) => void;
   login_uri?: string;

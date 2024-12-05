@@ -79,12 +79,17 @@ const PartDemandForecastChart: React.FC<PartDemandForecastChartProps> = ({ endpo
       chart: {
         type: 'line',
         height: 350,
+        width: '100%',
         toolbar: {
           tools: {
             zoom: false, // Disables the magnifying glass (zoom tool)
           },
         },
+        
       },
+      markers: {
+        size: 1,
+       },
       title: {
         text: `Forecast for ${partName}`,
         align: 'left',
@@ -100,7 +105,13 @@ const PartDemandForecastChart: React.FC<PartDemandForecastChartProps> = ({ endpo
           style: {
             color: mode === 'dark' ? '#fff' : '#141414',
           },
-        }
+        },
+        labels: {
+          style: {
+            fontSize: '12px',
+            colors: mode === 'dark' ? '#fff' : '#141414',
+          },
+        },
       },
       yaxis: {
         title: {
@@ -109,10 +120,10 @@ const PartDemandForecastChart: React.FC<PartDemandForecastChartProps> = ({ endpo
             color: mode === 'dark' ? '#fff' : '#141414',
           },
         },
-        
         labels: {
           formatter: (value) => value !== undefined ? value.toFixed(2) : '',
           style: {
+            fontSize: '12px',
             colors: mode === 'dark' ? '#fff' : '#141414',
           },
         },
@@ -274,12 +285,14 @@ const PartDemandForecastChart: React.FC<PartDemandForecastChartProps> = ({ endpo
                 Months of Historical Data: {summary.monthsOfData}
               </Typography>
             </Box>
+            <Box alignItems='center' justifyContent='center' display='flex-row'>
             <ReactApexCharts
               options={getChartOptions(part.partName)}
               series={getChartSeries(part.partName)}
               type="line"
               height={350}
             />
+            </Box>
           </Box>
           
         );

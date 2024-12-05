@@ -9,13 +9,13 @@ import {
 
 import { FormPropsSale } from 'interfaces/common';
 import { useState } from 'react';
-import { Close, Publish } from '@mui/icons-material';
+import { Close, Info, Publish } from '@mui/icons-material';
 import { useNavigate } from '@pankod/refine-react-router-v6';
 import CustomButton from './CustomButton';
 import useNextSequence from 'hooks/useNextSequence';
 import LoadingDialog from 'components/common/LoadingDialog';
 import ErrorDialog from 'components/common/ErrorDialog';
-import { TextField } from '@mui/material';
+import { InputAdornment, TextField, Tooltip } from '@mui/material';
 
 const getTodayDate = () => {
   const today = new Date();
@@ -67,7 +67,6 @@ const SaleForm = ({ type, register, handleSubmit, formLoading, onFinishHandler, 
       amount: parseFloat(amount),
       outputVAT: parseFloat(outputVAT),
       netOfVAT: parseFloat(netOfVAT),
-      // Ensure empty strings are allowed for clientName and tin
       clientName: data.clientName || '',
       tin: data.tin || ''
     };
@@ -185,6 +184,20 @@ const SaleForm = ({ type, register, handleSubmit, formLoading, onFinishHandler, 
           value={amount}
           onChange={handleAmountChange}
           inputProps={{ step: "0.01", required: true }}
+          InputProps={{
+            endAdornment: (
+              <InputAdornment position="end">
+                <Tooltip 
+                  title="Please enter the total sale amount. This field is required." 
+                  placement="top"
+                >
+                  <Info color="action" fontSize="small" />
+                </Tooltip>
+              </InputAdornment>
+            )
+          }}
+          error={amount === 0}
+          helperText={amount === 0 ? "Amount is required" : ""}
         />
 
         <Box sx={{ 
