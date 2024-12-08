@@ -46,7 +46,7 @@ interface ReportData {
 
 // Enum for data types
 enum DataType {
-    Procurement = 'Procurement',
+    Procurement = 'Procurements',
     Deployments = 'Deployments',
     Sales = 'Sales',
     Expenses = 'Expenses'
