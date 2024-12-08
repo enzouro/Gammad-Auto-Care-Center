@@ -9,6 +9,7 @@ import procurementModel from '../mongodb/models/procurement.js';
 import deploymentModel from '../mongodb/models/deployment.js';
 import saleModel from '../mongodb/models/sale.js';
 import expenseModel from '../mongodb/models/expense.js';
+import PartsModel from '../mongodb/models/part.js';
 
 // Utility function to get model based on data type
 const getModelByType = (type) => {
@@ -16,7 +17,8 @@ const getModelByType = (type) => {
         'procurements': procurementModel,
         'deployments': deploymentModel,
         'sales': saleModel,
-        'expenses': expenseModel
+        'expenses': expenseModel,
+        'parts': PartsModel // Add parts to the model mapping
     };
     
     const model = models[type.toLowerCase()];

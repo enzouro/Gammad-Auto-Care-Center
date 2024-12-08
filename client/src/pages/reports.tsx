@@ -49,7 +49,8 @@ enum DataType {
     Procurement = 'Procurements',
     Deployments = 'Deployments',
     Sales = 'Sales',
-    Expenses = 'Expenses'
+    Expenses = 'Expenses',
+    Parts = 'Parts'  // Add this line
 }
 
 const ReportsPage: React.FC = () => {
