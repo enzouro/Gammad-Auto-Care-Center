@@ -268,130 +268,120 @@ export const forecastSeasonalPartDemand = async (periods, topLimit = 5) => {
     return result; // Return the result
 };
 
-async function generateSeasonalForecast(historicalData, periods) {  
+async function generateSeasonalForecast(historicalData, periods) {  // Function to forecast seasonal data for a given number of periods
     // Handle very short time series
-    if (historicalData.length < 3) { 
+    if (historicalData.length < 3) { // If data is too short, return null forecast
         return {
-            historicalDates: [], // Add historical dates
-            historical: historicalData,
-            forecast: Array(periods).fill(null),
-            confidence: Array(periods).fill(null)
+            historical: historicalData, // Return the original data
+            forecast: Array(periods).fill(null), // Fill forecast with null values
+            confidence: Array(periods).fill(null) // Fill confidence intervals with null values
         };
     }
 
     // Simplified seasonal decomposition for smaller datasets
-    const seasonalityPeriod = Math.min(12, historicalData.length);
-    const seasons = Array(seasonalityPeriod).fill(0);
+    const seasonalityPeriod = Math.min(12, historicalData.length); // Use 12 or data length (whichever is smaller)
+    const seasons = Array(seasonalityPeriod).fill(0); // Initialize array for seasonal calculations
 
     // Calculate seasonal indices
     for (let i = 0; i < historicalData.length; i++) {
-        seasons[i % seasonalityPeriod] += historicalData[i];
+        seasons[i % seasonalityPeriod] += historicalData[i]; // Aggregate data for each season
     }
 
     const seasonalFactors = seasons.map(s => 
-        s / (Math.floor(historicalData.length / seasonalityPeriod)));
+        s / (Math.floor(historicalData.length / seasonalityPeriod))); // Calculate average seasonal factors
 
     // Remove seasonality from data
     const deseasonalizedData = historicalData.map((value, index) => 
-        value / (seasonalFactors[index % seasonalityPeriod] || 1));
+        value / (seasonalFactors[index % seasonalityPeriod] || 1)); // Divide by seasonal factor to get deseasonalized data
 
     try {
-        const inputValues = deseasonalizedData.slice(0, -1);
-        const outputValues = deseasonalizedData.slice(1);
+        // Create input sequence for the model
+        const inputValues = deseasonalizedData.slice(0, -1); // Inputs are all but the last value
+        const outputValues = deseasonalizedData.slice(1); // Outputs are all but the first value
 
         if (inputValues.length === 0 || outputValues.length === 0) {
-            throw new Error('Insufficient data for training');
+            throw new Error('Insufficient data for training'); // Error if not enough data for training
         }
 
-        // Generate historical dates (assuming monthly data)
-        const historicalDates = Array.from(
-            { length: historicalData.length }, 
-            (_, i) => moment().subtract(historicalData.length - i, 'months').format('MMM YYYY')
-        );
+        // Normalize the data
+        const { normalizedValues, mean, std } = normalizeData(deseasonalizedData); // Use helper function to normalize
 
-        const { normalizedValues, mean, std } = normalizeData(deseasonalizedData);
+        // Create and train the model directly
+        const xs = tf.tensor2d(normalizedValues.slice(0, -1), [inputValues.length, 1]); // Input tensor
+        const ys = tf.tensor2d(normalizedValues.slice(1), [outputValues.length, 1]); // Output tensor
 
-        const xs = tf.tensor2d(normalizedValues.slice(0, -1), [inputValues.length, 1]);
-        const ys = tf.tensor2d(normalizedValues.slice(1), [outputValues.length, 1]);
-
-        const modelTensor = tf.sequential();
-        modelTensor.add(tf.layers.dense({ units: 32, activation: 'relu', inputShape: [1] }));
-        modelTensor.add(tf.layers.dropout({ rate: 0.2 }));
-        modelTensor.add(tf.layers.dense({ units: 16, activation: 'relu' }));
-        modelTensor.add(tf.layers.dense({ units: 1 }));
+        const modelTensor = tf.sequential(); // Initialize sequential model
+        modelTensor.add(tf.layers.dense({ units: 32, activation: 'relu', inputShape: [1] })); // Add first dense layer
+        modelTensor.add(tf.layers.dropout({ rate: 0.2 })); // Add dropout layer to prevent overfitting
+        modelTensor.add(tf.layers.dense({ units: 16, activation: 'relu' })); // Add second dense layer
+        modelTensor.add(tf.layers.dense({ units: 1 })); // Output layer
 
         modelTensor.compile({
-            optimizer: tf.train.adam(0.001),
-            loss: 'meanSquaredError',
-            metrics: ['mse'],
+            optimizer: tf.train.adam(0.001), // Use Adam optimizer with a small learning rate
+            loss: 'meanSquaredError', // Loss function is mean squared error
+            metrics: ['mse'], // Track mean squared error during training
         });
 
-        await modelTensor.fit(xs, ys, {
-            epochs: 200,
-            validationSplit: 0.2,
-            callbacks: {
+        await modelTensor.fit(xs, ys, { // Train the model
+            epochs: 200, // Set max epochs to 200
+            validationSplit: 0.2, // Use 20% of data for validation
+            callbacks: { // Add early stopping logic
                 onEpochEnd: (epoch, logs) => {
-                    if (epoch > 50 && logs.val_loss > logs.loss * 1.5) {
+                    if (epoch > 50 && logs.val_loss > logs.loss * 1.5) { // Stop if validation loss diverges
                         modelTensor.stopTraining = true;
                     }
                 },
             },
         });
 
-        let current = deseasonalizedData[deseasonalizedData.length - 1];
-        const predictions = [];
-        const confidenceIntervals = [];
+        // Generate predictions
+        let current = deseasonalizedData[deseasonalizedData.length - 1]; // Start with last deseasonalized value
+        const predictions = []; // Array to store predictions
+        const confidenceIntervals = []; // Array to store confidence intervals
 
-        // Generate forecast dates
-        const forecastDates = Array.from(
-            { length: periods }, 
-            (_, i) => moment().add(i + 1, 'months').format('MMM YYYY')
-        );
-
-        for (let i = 0; i < periods; i++) {
-            const normalizedInput = (current - mean) / std;
-            const prediction = modelTensor.predict(tf.tensor2d([normalizedInput], [1, 1]));
+        for (let i = 0; i < periods; i++) { // Loop for each forecast period
+            const normalizedInput = (current - mean) / std; // Normalize current input
+            const prediction = modelTensor.predict(tf.tensor2d([normalizedInput], [1, 1])); // Predict using the model
             
-            current = prediction.dataSync()[0] * std + mean;
-            predictions.push(Math.max(0, current));
+            current = prediction.dataSync()[0] * std + mean; // Denormalize the prediction
+            predictions.push(Math.max(0, current)); // Ensure non-negative predictions
         }
 
-        const forecastMean = predictions.reduce((acc, val) => acc + val, 0) / predictions.length;
-        const forecastVariance = predictions.reduce((acc, val) => acc + Math.pow(val - forecastMean, 2), 0) / predictions.length;
-        const forecastStdDev = Math.sqrt(forecastVariance);
+        // Calculate confidence intervals
+        const forecastMean = predictions.reduce((acc, val) => acc + val, 0) / predictions.length; // Mean of predictions
+        const forecastVariance = predictions.reduce((acc, val) => acc + Math.pow(val - forecastMean, 2), 0) / predictions.length; // Variance
+        const forecastStdDev = Math.sqrt(forecastVariance); // Standard deviation of predictions
 
         const confidence = predictions.map(pred => ({
-            lower: Math.max(0, pred - 1.96 * forecastStdDev),
-            upper: pred + 1.96 * forecastStdDev
+            lower: Math.max(0, pred - 1.96 * forecastStdDev), // Lower bound of 95% confidence interval
+            upper: pred + 1.96 * forecastStdDev // Upper bound of 95% confidence interval
         }));
 
+        // Reapply seasonality to forecast and confidence intervals
         const seasonalForecast = predictions.map((value, index) => 
-            Math.max(0, value * (seasonalFactors[index % seasonalityPeriod] || 1)));
+            Math.max(0, value * (seasonalFactors[index % seasonalityPeriod] || 1))); // Reapply seasonal factors
 
         const seasonalConfidence = confidence.map((conf, index) => ({
-            lower: Math.max(0, conf.lower * (seasonalFactors[index % seasonalityPeriod] || 1)),
-            upper: conf.upper * (seasonalFactors[index % seasonalityPeriod] || 1)
+            lower: Math.max(0, conf.lower * (seasonalFactors[index % seasonalityPeriod] || 1)), // Apply seasonal factor to lower bound
+            upper: conf.upper * (seasonalFactors[index % seasonalityPeriod] || 1) // Apply seasonal factor to upper bound
         }));
 
         return {
-            historicalDates, // Add historical dates
-            forecastDates,   // Add forecast dates
-            historical: historicalData,
-            forecast: seasonalForecast,
-            confidence: seasonalConfidence
+            historical: historicalData, // Original historical data
+            forecast: seasonalForecast, // Forecast with seasonality reapplied
+            confidence: seasonalConfidence // Confidence intervals with seasonality reapplied
         };
 
     } catch (error) {
-        console.error('Forecast generation error:', error);
+        console.error('Forecast generation error:', error); // Log errors
         return {
-            historicalDates: [], // Empty dates on error
-            forecastDates: [],   // Empty forecast dates on error
-            historical: historicalData,
-            forecast: Array(periods).fill(null),
-            confidence: Array(periods).fill(null)
+            historical: historicalData, // Original historical data
+            forecast: Array(periods).fill(null), // Return null forecast
+            confidence: Array(periods).fill(null) // Return null confidence intervals
         };
     }
 }
+
 // Export other forecasting functions
 export const forecastProcurementExpenses = async (periods) =>
     generateForecast(procurementModel, 'amount', 'date', periods); // Function for procurement expense forecasting
