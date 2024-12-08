@@ -144,7 +144,12 @@ const AllSales = () => {
     <Paper 
       elevation={3} 
       sx={{ 
-        height: containerHeight,
+        height: {
+          xs: '700PX',
+          sm: '700px',
+          md: containerHeight,
+          lg: containerHeight,
+        },
         display: 'flex',
         flexDirection: 'column',
         m: 2,
@@ -182,6 +187,7 @@ const AllSales = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
             sx={{ minWidth: '300px' }}
           />
+          <Box flex='row' display='flex' gap={2}>
           <TextField
             size="small"
             label="Start Date"
@@ -198,6 +204,7 @@ const AllSales = () => {
             onChange={(e) => setEndDate(e.target.value)}
             InputLabelProps={{ shrink: true }}
           />
+          </Box>
           <ButtonGroup>
             <Button
               variant={deletedFilter === 'active' ? 'contained' : 'outlined'}
@@ -227,7 +234,7 @@ const AllSales = () => {
                 },
               }}
             >
-              Deleted
+              Archive
             </Button>
           </ButtonGroup>
         </Stack>

@@ -70,10 +70,18 @@ const PartDemandForecastChart: React.FC<PartDemandForecastChartProps> = ({ endpo
     const historicalData = forecastData?.historical || [];
     const forecastDataLength = forecastData?.forecast?.length || 0;
 
-    const allCategories = [
-      ...historicalData.map((_, i) => `Historical ${i + 1}`),
-      ...Array.from({ length: forecastDataLength }, (_, i) => `Forecast ${i + 1}`)
-    ];
+    const currentDate = new Date();
+    const historicalMonths = historicalData.map((_, i) => {
+      const monthDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - historicalData.length + i + 1);
+      return monthDate.toLocaleString('default', { month: 'short', year: 'numeric' });
+    });
+  
+    const forecastMonths = (forecastData?.forecast || []).map((_, i) => {
+      const monthDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + i + 1);
+      return monthDate.toLocaleString('default', { month: 'short', year: 'numeric' });
+    });
+  
+    const allCategories = [...historicalMonths, ...forecastMonths];
 
     return {
       chart: {
@@ -81,15 +89,51 @@ const PartDemandForecastChart: React.FC<PartDemandForecastChartProps> = ({ endpo
         height: 350,
         width: '100%',
         toolbar: {
+          show: true,
           tools: {
-            zoom: false, // Disables the magnifying glass (zoom tool)
+            download: true,
+            selection: true,
+            zoom: false,
+            zoomin: true,
+            zoomout: true,
+            pan: true,
+            reset: true,
           },
         },
-        
+        events: {
+          mounted: (chartContext) => {
+            try {
+              // Ensure chartContext and zoomX method exist before calling
+              if (chartContext && typeof chartContext.zoomX === 'function') {
+                const historicalLength = historicalData.length;
+                const forecastLength = forecastData?.forecast?.length || 0;
+                
+                // Start from 6 months before the forecast or the beginning of historical data
+                const startIndex = Math.max(0, historicalLength - 6);
+                
+                chartContext.zoomX(
+                  startIndex, 
+                  historicalLength + forecastLength
+                );
+              }
+            } catch (error) {
+              console.warn('Zoom initialization error:', error);
+            }
+          }
+        },
+        animations: {
+          enabled: true,
+          easing: 'easeinout',
+          speed: 800,
+          animateGradually: {
+            enabled: true,
+            delay: 150,
+          },
+        },
       },
       markers: {
         size: 1,
-       },
+      },
       title: {
         text: `Forecast for ${partName}`,
         align: 'left',
@@ -107,11 +151,14 @@ const PartDemandForecastChart: React.FC<PartDemandForecastChartProps> = ({ endpo
           },
         },
         labels: {
+          rotate: -45,
+          trim: true,
           style: {
             fontSize: '12px',
             colors: mode === 'dark' ? '#fff' : '#141414',
           },
         },
+        tickAmount: 5, // Limit number of ticks
       },
       yaxis: {
         title: {
@@ -121,7 +168,11 @@ const PartDemandForecastChart: React.FC<PartDemandForecastChartProps> = ({ endpo
           },
         },
         labels: {
-          formatter: (value) => value !== undefined ? value.toFixed(2) : '',
+          formatter: (value) => value !== undefined ? value.toLocaleString('en-US', {
+            maximumFractionDigits: 0,
+            style: 'currency',
+            currency: 'PHP',
+          }) : '',
           style: {
             fontSize: '12px',
             colors: mode === 'dark' ? '#fff' : '#141414',
@@ -138,7 +189,7 @@ const PartDemandForecastChart: React.FC<PartDemandForecastChartProps> = ({ endpo
         position: 'top',
         labels: {
           colors: mode === 'dark' ? '#fff' : '#141414',
-      },
+        },
       },
       fill: {
         type: 'solid',
@@ -148,7 +199,17 @@ const PartDemandForecastChart: React.FC<PartDemandForecastChartProps> = ({ endpo
         shared: true,
         intersect: false,
         theme: mode === 'dark' ? 'dark' : 'light',
-      }
+        y: {
+          formatter: (value) =>
+            value !== undefined && value !== null
+              ? value.toLocaleString('en-US', {
+                  style: 'currency',
+                  currency: 'PHP', // Set to PHP
+                })
+              : 'N/A', // Fallback for undefined or null values
+        },
+      },
+      colors: ['#008FFB', '#FEB019', '#B3F7CA', '#B3F7CA'],
     };
   };
 
@@ -216,7 +277,6 @@ const PartDemandForecastChart: React.FC<PartDemandForecastChartProps> = ({ endpo
   }
 
   return (
-
     <Box>
       <Typography variant="h6" className="mb-4">
         {title}
@@ -236,75 +296,73 @@ const PartDemandForecastChart: React.FC<PartDemandForecastChartProps> = ({ endpo
               <CircularProgress />
             </Box>
           ) : data ? (
+            <Box>
+              {data.topParts.map((part) => {
+                const summary = data.summaries[part.partName];
+                const error = data.errors[part.partName];
+                const forecastData = data.forecasts[part.partName];
 
-<Box>
-      {data.topParts.map((part) => {
-        const summary = data.summaries[part.partName];
-        const error = data.errors[part.partName];
-        const forecastData = data.forecasts[part.partName];
+                if (loading) {
+                  return (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+                      <CircularProgress />
+                    </Box>
+                  );
+                }
 
-        if (loading) {
-          return (
-            <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
-              <CircularProgress />
-            </Box>
-          );
-        }
+                if (error) {
+                  return (
+                    <Box key={part.partId} sx={{ mb: 4 }}>
+                      <Typography color="error">
+                        Error forecasting {part.partName}: {error}
+                      </Typography>
+                    </Box>
+                  );
+                }
 
-        if (error) {
-          return (
-            <Box key={part.partId} sx={{ mb: 4 }}>
-              <Typography color="error">
-                Error forecasting {part.partName}: {error}
-              </Typography>
-            </Box>
-          );
-        }
+                if (!forecastData || !forecastData.forecast || !forecastData.confidence) {
+                  return (
+                    <Box key={part.partId} sx={{ mb: 4 }}>
+                      <Typography color="warning">
+                        No forecast data available for {part.partName}
+                      </Typography>
+                    </Box>
+                  );
+                }
 
-        if (!forecastData || !forecastData.forecast || !forecastData.confidence) {
-          return (
-            <Box key={part.partId} sx={{ mb: 4 }}>
-              <Typography color="warning">
-                No forecast data available for {part.partName}
-              </Typography>
+                return (
+                  <Box key={part.partId} sx={{ mb: 6 }}>
+                    <Box sx={{ mb: 2 }}>
+                      <Typography variant="h6">{part.partName}</Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Total Usage: {summary.totalUsage.toLocaleString()}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Average Monthly Usage: {Math.round(summary.averageMonthlyUsage * 100) / 100}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Months of Historical Data: {summary.monthsOfData}
+                      </Typography>
+                    </Box>
+                    <Box alignItems='center' justifyContent='center' display='flex-row'>
+                      <ReactApexCharts
+                        options={getChartOptions(part.partName)}
+                        series={getChartSeries(part.partName)}
+                        type="line"
+                        height={350}
+                        width="100%"
+                      />
+                    </Box>
+                  </Box>
+                );
+              })}
             </Box>
-          );
-        }
-
-        return (
-          <Box key={part.partId} sx={{ mb: 6 }}>
-            <Box sx={{ mb: 2 }}>
-              <Typography variant="h6">{part.partName}</Typography>
-              <Typography variant="body2" color="text.secondary">
-                Total Usage: {summary.totalUsage}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Average Monthly Usage: {Math.round(summary.averageMonthlyUsage * 100) / 100}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Months of Historical Data: {summary.monthsOfData}
-              </Typography>
-            </Box>
-            <Box alignItems='center' justifyContent='center' display='flex-row'>
-            <ReactApexCharts
-              options={getChartOptions(part.partName)}
-              series={getChartSeries(part.partName)}
-              type="line"
-              height={350}
-            />
-            </Box>
-          </Box>
-          
-        );
-      })}
-      </Box>
-                ) : (
-                  <Typography color="error">No data available</Typography>
-                )}
-              </>
-            )}
+          ) : (
+            <Typography color="error">No data available</Typography>
+          )}
+        </>
+      )}
     </Box>
-        
   );
 };
 

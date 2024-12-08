@@ -14,6 +14,7 @@ import clientPortalRouter from './routes/clientPortal.routes.js'
 import expenseRouter from './routes/expense.routes.js';
 import forecastingRoutes from './routes/forecasting.routes.js';
 import reportsRoutes from './routes/reports.routes.js';
+import dataRoutes from './routes/dataIE.routes.js';
 
 dotenv.config();
 
@@ -37,6 +38,7 @@ app.use('/api/v1/clientPortal', clientPortalRouter);
 app.use('/api/v1/expenses', expenseRouter);
 app.use('/api/forecasting', forecastingRoutes);
 app.use('/api/v1/reports', reportsRoutes);
+app.use('/api/v1/data', dataRoutes);
 
 const startServer = async () => {
   try {

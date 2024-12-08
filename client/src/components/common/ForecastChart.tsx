@@ -27,6 +27,7 @@ const ForecastChart: React.FC<ForecastChartProps> = ({ endpoint, title }) => {
   const containerHeight = useDynamicHeight();
   const { mode } = useContext(ColorModeContext);
 
+
   useEffect(() => {
     const fetchForecast = async () => {
       try {
@@ -47,8 +48,18 @@ const ForecastChart: React.FC<ForecastChartProps> = ({ endpoint, title }) => {
   }, [endpoint, showChart]);
 
   const getChartOptions = (data: ForecastData): ApexOptions => {
-    const historicalMonths = data.historical.map((_, i) => `Historical ${i + 1}`);
-    const forecastMonths = data.forecast.map((_, i) => `Forecast ${i + 1}`);
+    const currentDate = new Date();
+    const historicalMonths = data.historical.map((_, i) => {
+      const monthDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - data.historical.length + i + 1);
+      return monthDate.toLocaleString('default', { month: 'short', year: 'numeric' });
+    });
+
+  
+    const forecastMonths = data.forecast.map((_, i) => {
+      const monthDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + i + 1);
+      return monthDate.toLocaleString('default', { month: 'short', year: 'numeric' });
+    });
+  
     const allCategories = [...historicalMonths, ...forecastMonths];
 
     return {
@@ -67,6 +78,27 @@ const ForecastChart: React.FC<ForecastChartProps> = ({ endpoint, title }) => {
             reset: true,
           },
         },
+        events: {
+          mounted: (chartContext) => {
+            try {
+              // Ensure chartContext and zoomX method exist before calling
+              if (chartContext && typeof chartContext.zoomX === 'function') {
+                const historicalLength = data.historical.length;
+                const forecastLength = data.forecast.length;
+                
+                // Start from 6 months before the forecast or the beginning of historical data
+                const startIndex = Math.max(0, historicalLength - 6);
+                
+                chartContext.zoomX(
+                  startIndex, 
+                  historicalLength + forecastLength
+                );
+              }
+            } catch (error) {
+              console.warn('Zoom initialization error:', error);
+            }
+          }
+        },
         animations: {
           enabled: true,
           easing: 'easeinout',
@@ -84,6 +116,7 @@ const ForecastChart: React.FC<ForecastChartProps> = ({ endpoint, title }) => {
       },
       xaxis: {
         categories: allCategories,
+        
         labels: {
           rotate: -45,
           trim: true,
@@ -91,6 +124,12 @@ const ForecastChart: React.FC<ForecastChartProps> = ({ endpoint, title }) => {
             colors: mode === 'dark' ? '#fff' : '#141414',
           },
         },
+        title: {
+          text: 'Month-Year',
+          style: {
+            color: mode === 'dark' ? '#fff' : '#141414',
+          }
+        }
       },
       yaxis: {
         title: {
@@ -140,10 +179,13 @@ const ForecastChart: React.FC<ForecastChartProps> = ({ endpoint, title }) => {
         type: ['solid', 'solid', 'solid', 'solid'],
         opacity: [1, 1, 0.4, 0.4],
       },
+
     };
   };
 
   const getSeries = (data: ForecastData) => {
+    
+
     const historicalSeries = {
       name: 'Historical',
       type: 'line',
@@ -176,6 +218,7 @@ const ForecastChart: React.FC<ForecastChartProps> = ({ endpoint, title }) => {
 
     return [historicalSeries, forecastSeries, upperBoundSeries, lowerBoundSeries];
   };
+  
 
   return (
     <Box className="p-4 bg-white rounded-lg shadow-md">

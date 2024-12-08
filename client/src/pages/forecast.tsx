@@ -23,7 +23,6 @@ const Forecast: React.FC = () => {
           display: 'flex',
           flexDirection: 'column',
           m: 2,
-          height: 'auto',
         
         }}
       >
@@ -41,12 +40,20 @@ const Forecast: React.FC = () => {
                 textColor="primary"
                 variant="scrollable"
                 scrollButtons="auto"
+                sx={{
+                    width: '100%', 
+                    // Ensure tabs are fully visible and scrollable
+                    '& .MuiTabs-scrollButtons': {
+                        display: 'flex', // Always show scroll buttons
+
+                    },
+                }}
             >
-                <Tab label="Part Demand Forecast" />
-                <Tab label="Procurement Forecast" />
-                <Tab label="Sales Forecast" />
-                <Tab label="Expenses Forecast" />
-                <Tab label="Turnaround Analysis" />
+                <Tab label="Part Demand" />
+                <Tab label="Procurement" />
+                <Tab label="Sales" />
+                <Tab label="Expenses" />
+                <Tab label="Turnaround" />
             </Tabs>
 
             <Box sx={{ 

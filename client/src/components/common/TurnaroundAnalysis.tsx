@@ -113,7 +113,27 @@ const TurnaroundAnalysis: React.FC<TurnaroundAnalysisProps> = ({ endpoint, title
             pan: true,
             reset: true,
           },
-          
+        },
+        events: {
+          mounted: (chartContext) => {
+            try {
+              // Ensure chartContext and zoomX method exist before calling
+              if (chartContext && typeof chartContext.zoomX === 'function') {
+                const historicalLength = data?.historical?.timeSeriesData?.length || 0;
+                const forecastLength = data?.forecasts?.turnaroundTime?.forecast?.length || 0;
+                
+                // Start from 6 months before the forecast or the beginning of historical data
+                const startIndex = Math.max(0, historicalLength - 5);
+                
+                chartContext.zoomX(
+                  startIndex, 
+                  historicalLength + forecastLength
+                );
+              }
+            } catch (error) {
+              console.warn('Zoom initialization error:', error);
+            }
+          }
         },
         animations: {
           enabled: true,
@@ -139,6 +159,7 @@ const TurnaroundAnalysis: React.FC<TurnaroundAnalysisProps> = ({ endpoint, title
             colors: mode === 'dark' ? '#fff' : '#141414',
           },
         },
+        tickAmount: 5, // Limit number of ticks
       },
       yaxis: {
         title: {

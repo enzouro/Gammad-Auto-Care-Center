@@ -36,7 +36,7 @@ const DeleteConfirmationDialog: React.FC<DeleteConfirmationDialogProps> = ({
     }
   } : {
     title: 'Move to Trash',
-    description: `Are you sure you want to move ${contentText} to trash? You can restore it later.`,
+    description: `Are you sure you want to move ${contentText} to Archive? You can restore it later.`,
     confirmButton: {
       text: 'Move to Trash',
       icon: <Delete />,

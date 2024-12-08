@@ -391,7 +391,12 @@ const AllDeployments = () => {
     <Paper
       elevation={3}
       sx={{
-        height: containerHeight,
+        height: {
+          xs: '700PX',
+          sm: '700px',
+          md: containerHeight,
+          lg: containerHeight,
+        },
         display: 'flex',
         flexDirection: 'column',
         m: 2,
@@ -429,6 +434,7 @@ const AllDeployments = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
             sx={{ minWidth: '300px' }}
           />
+          <Box flex='row' display='flex' gap={2}>
           <TextField
             size="small"
             label="Start Date"
@@ -445,6 +451,7 @@ const AllDeployments = () => {
             onChange={(e) => setEndDate(e.target.value)}
             InputLabelProps={{ shrink: true }}
           />
+          </Box>
           <ButtonGroup>
             <Button
               variant={deletedFilter === 'active' ? 'contained' : 'outlined'}
@@ -474,7 +481,7 @@ const AllDeployments = () => {
                 },
               }}
             >
-              Deleted
+              Archive
             </Button>
           </ButtonGroup>
         </Stack>
@@ -489,6 +496,7 @@ const AllDeployments = () => {
       </Box>
 
       <Box sx={{
+
         flex: 1,
         width: '100%',
         overflow: 'hidden'
